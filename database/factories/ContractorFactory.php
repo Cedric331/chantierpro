@@ -17,12 +17,12 @@ class ContractorFactory extends Factory
     {
         return [
             'account_id' => Account::factory(),
-            'name' => fake()->name(),
-            'company' => fake()->company(),
-            'role' => fake()->randomElement(['Électricien', 'Plombier', 'Maçon', 'Peintre']),
-            'email' => fake()->safeEmail(),
-            'phone' => fake()->phoneNumber(),
-            'insurance_policy' => 'POL-'.fake()->numerify('#####'),
+            'name' => $this->faker->name(),
+            'company' => $this->faker->company(),
+            'role' => $this->faker->randomElement(['Électricien', 'Plombier', 'Maçon', 'Peintre']),
+            'email' => $this->faker->safeEmail(),
+            'phone' => $this->faker->phoneNumber(),
+            'insurance_policy' => 'POL-'.$this->faker->numerify('#####'),
         ];
     }
 }

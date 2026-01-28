@@ -15,7 +15,7 @@ class AccountFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->company();
+      $name = $this->faker->company();
 
         return [
             'name' => $name,

@@ -19,10 +19,10 @@ class DecisionFactory extends Factory
         return [
             'account_id' => Account::factory(),
             'project_id' => Project::factory(),
-            'title' => fake()->sentence(4),
-            'description' => fake()->optional()->sentence(8),
-            'actor_name' => fake()->name(),
-            'decided_at' => fake()->dateTimeBetween('-2 months', 'now'),
+            'title' => $this->faker->sentence(4),
+            'description' => $this->faker->optional()->sentence(8),
+            'actor_name' => $this->faker->name(),
+            'decided_at' => $this->faker->dateTimeBetween('-2 months', 'now'),
         ];
     }
 }

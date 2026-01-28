@@ -19,11 +19,11 @@ class ProjectTaskFactory extends Factory
         return [
             'account_id' => Account::factory(),
             'project_id' => Project::factory(),
-            'title' => fake()->sentence(4),
-            'status' => fake()->randomElement(['pending', 'in_progress', 'done']),
-            'assigned_to' => fake()->optional()->name(),
-            'due_date' => fake()->optional()->dateTimeBetween('now', '+2 months'),
-            'requires_photo' => fake()->boolean(30),
+            'title' => $this->faker->sentence(4),
+            'status' => $this->faker->randomElement(['pending', 'in_progress', 'done']),
+            'assigned_to' => $this->faker->optional()->name(),
+            'due_date' => $this->faker->optional()->dateTimeBetween('now', '+2 months'),
+            'requires_photo' => $this->faker->boolean(30),
         ];
     }
 }

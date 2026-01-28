@@ -19,8 +19,8 @@ class PhotoFactory extends Factory
         return [
             'account_id' => Account::factory(),
             'project_id' => Project::factory(),
-            'caption' => fake()->sentence(3),
-            'taken_at' => fake()->dateTimeBetween('-1 month', 'now'),
+            'caption' => $this->faker->sentence(3),
+            'taken_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
         ];
     }
 }

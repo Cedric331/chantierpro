@@ -17,15 +17,15 @@ class ProjectFactory extends Factory
     {
         return [
             'account_id' => Account::factory(),
-            'name' => fake()->streetName().' '.fake()->randomElement(['Villa', 'Résidence', 'Maison']),
-            'client_name' => fake()->name(),
-            'address' => fake()->streetAddress(),
-            'city' => fake()->city(),
-            'status' => fake()->randomElement(['preparation', 'in_progress', 'delayed', 'completed']),
-            'budget' => fake()->numberBetween(50000, 900000),
-            'start_date' => fake()->dateTimeBetween('-2 months', '+1 month'),
-            'end_date' => fake()->dateTimeBetween('+2 months', '+12 months'),
-            'progress' => fake()->numberBetween(5, 95),
+            'name' => $this->faker->streetName().' '.$this->faker->randomElement(['Villa', 'Résidence', 'Maison']),
+            'client_name' => $this->faker->name(),
+            'address' => $this->faker->streetAddress(),
+            'city' => $this->faker->city(),
+            'status' => $this->faker->randomElement(['preparation', 'in_progress', 'delayed', 'completed']),
+            'budget' => $this->faker->numberBetween(50000, 900000),
+            'start_date' => $this->faker->dateTimeBetween('-2 months', '+1 month'),
+            'end_date' => $this->faker->dateTimeBetween('+2 months', '+12 months'),
+            'progress' => $this->faker->numberBetween(5, 95),
         ];
     }
 }

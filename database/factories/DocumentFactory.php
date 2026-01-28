@@ -19,10 +19,10 @@ class DocumentFactory extends Factory
         return [
             'account_id' => Account::factory(),
             'project_id' => Project::factory(),
-            'title' => fake()->sentence(3),
-            'category' => fake()->randomElement(['Plans', 'Devis', 'Factures']),
-            'version' => 'v'.fake()->numberBetween(1, 3),
-            'status' => fake()->randomElement(['pending', 'approved', 'rejected']),
+            'title' => $this->faker->sentence(3),
+            'category' => $this->faker->randomElement(['Plans', 'Devis', 'Factures']),
+            'version' => 'v'.$this->faker->numberBetween(1, 3),
+            'status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
         ];
     }
 }

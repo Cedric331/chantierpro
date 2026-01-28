@@ -19,13 +19,13 @@ class IncidentFactory extends Factory
         return [
             'account_id' => Account::factory(),
             'project_id' => Project::factory(),
-            'title' => fake()->sentence(3),
-            'description' => fake()->sentence(10),
-            'status' => fake()->randomElement(['open', 'resolved']),
-            'impact_days' => fake()->numberBetween(0, 14),
-            'impact_cost' => fake()->numberBetween(1000, 12000),
-            'reported_by' => fake()->name(),
-            'resolved_at' => fake()->optional()->dateTimeBetween('-1 month', 'now'),
+            'title' => $this->faker->sentence(3),
+            'description' => $this->faker->sentence(10),
+            'status' => $this->faker->randomElement(['open', 'resolved']),
+            'impact_days' => $this->faker->numberBetween(0, 14),
+            'impact_cost' => $this->faker->numberBetween(1000, 12000),
+            'reported_by' => $this->faker->name(),
+            'resolved_at' => $this->faker->optional()->dateTimeBetween('-1 month', 'now'),
         ];
     }
 }
