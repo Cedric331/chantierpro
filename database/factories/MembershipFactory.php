@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\MembershipRole;
 use App\Models\Account;
 use App\Models\Membership;
 use App\Models\User;
@@ -19,7 +20,7 @@ class MembershipFactory extends Factory
         return [
             'account_id' => Account::factory(),
             'user_id' => User::factory(),
-            'role' => 'Customer',
+            'role' => MembershipRole::Collaborator,
         ];
     }
 }

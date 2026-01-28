@@ -19,6 +19,9 @@ use App\Http\Controllers\Photos\DestroyController as PhotosDestroyController;
 use App\Http\Controllers\Photos\IndexController as PhotosIndexController;
 use App\Http\Controllers\Photos\StoreController as PhotosStoreController;
 use App\Http\Controllers\Photos\UpdateController as PhotosUpdateController;
+use App\Http\Controllers\Notifications\IndexController as NotificationsIndexController;
+use App\Http\Controllers\Notifications\MarkAllReadController as NotificationsMarkAllReadController;
+use App\Http\Controllers\Notifications\MarkReadController as NotificationsMarkReadController;
 use App\Http\Controllers\ProjectTasks\DestroyController as ProjectTasksDestroyController;
 use App\Http\Controllers\ProjectTasks\IndexController as ProjectTasksIndexController;
 use App\Http\Controllers\ProjectTasks\StoreController as ProjectTasksStoreController;
@@ -91,6 +94,10 @@ Route::middleware(['auth', 'verified', 'account', 'subscription'])->group(functi
     Route::delete('tasks/{task}', ProjectTasksDestroyController::class)->name('tasks.destroy');
 
     Route::get('planning', PlanningIndexController::class)->name('planning.index');
+
+    Route::get('notifications', NotificationsIndexController::class)->name('notifications.index');
+    Route::patch('notifications', NotificationsMarkAllReadController::class)->name('notifications.read-all');
+    Route::patch('notifications/{notification}', NotificationsMarkReadController::class)->name('notifications.read');
 
     Route::get('decisions', DecisionsIndexController::class)->name('decisions.index');
     Route::post('decisions', DecisionsStoreController::class)->name('decisions.store');

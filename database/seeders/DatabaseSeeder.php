@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\MembershipRole;
 use App\Models\Account;
 use App\Models\Contractor;
 use App\Models\Decision;
@@ -41,7 +42,7 @@ class DatabaseSeeder extends Seeder
         Membership::factory()->create([
             'user_id' => $user->id,
             'account_id' => $account->id,
-            'role' => 'Admin',
+            'role' => MembershipRole::Owner,
         ]);
         $user->forceFill(['current_account_id' => $account->id])->save();
 
@@ -56,9 +57,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Membership::factory()->create([
-            'user_id' => $user->id,
+            'user_id' => $user->id, 
             'account_id' => $account->id,
-            'role' => 'Customer',
+            'role' => MembershipRole::Owner,
         ]);
 
         $user->forceFill(['current_account_id' => $account->id])->save();

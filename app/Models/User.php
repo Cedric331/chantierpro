@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\MembershipRole;
+use App\Models\Account;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -70,6 +72,28 @@ class User extends Authenticatable
     public function currentAccount(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'current_account_id');
+    }
+
+    public function membershipRoleFor(?Account $account): ?MembershipRole
+    {
+        if (! $account) {
+            return null;
+        }
+
+        $role = $this->memberships()
+            ->where('account_id', $account->id)
+            ->value('role');
+
+        if ($role instanceof MembershipRole) {
+            return $role;
+        }
+
+        return $role ? MembershipRole::tryFrom($role) : null;
+    }
+
+    public function isAccountOwner(?Account $account): bool
+    {
+        return $this->membershipRoleFor($account) === MembershipRole::Owner;
     }
 
 }

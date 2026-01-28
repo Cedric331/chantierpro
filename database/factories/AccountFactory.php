@@ -19,6 +19,9 @@ class AccountFactory extends Factory
 
         return [
             'name' => $name,
+            'address' => $this->faker->streetAddress(),
+            'city' => $this->faker->city(),
+            'phone' => $this->faker->phoneNumber(),
             'slug' => Str::slug($name).'-'.Str::lower(Str::random(6)),
             'trial_ends_at' => now()->addDays(14),
         ];

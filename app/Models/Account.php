@@ -17,6 +17,9 @@ class Account extends Model
      */
     protected $fillable = [
         'name',
+        'address',
+        'city',
+        'phone',
         'slug',
         'stripe_id',
         'pm_type',

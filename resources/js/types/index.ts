@@ -14,8 +14,12 @@ export type AppPageProps<
         name: string;
         slug: string;
         trial_ends_at?: string | null;
+        address?: string | null;
+        city?: string | null;
+        phone?: string | null;
     } | null;
     roles?: string[];
+    unreadNotificationsCount?: number;
     sidebarOpen: boolean;
     [key: string]: unknown;
 };

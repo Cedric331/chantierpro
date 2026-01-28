@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureActiveSubscription
@@ -22,6 +23,10 @@ class EnsureActiveSubscription
 
         $account = $user->currentAccount;
         if (! $account) {
+            return $next($request);
+        }
+
+        if (! Schema::hasTable('subscriptions') || ! Schema::hasColumn('subscriptions', 'account_id')) {
             return $next($request);
         }
 

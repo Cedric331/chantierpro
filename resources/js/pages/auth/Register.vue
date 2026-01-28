@@ -55,12 +55,65 @@ import { Form, Head } from '@inertiajs/vue3';
                 </div>
 
                 <div class="grid gap-2">
+                    <Label for="account_name">Nom de l'entreprise</Label>
+                    <Input
+                        id="account_name"
+                        type="text"
+                        required
+                        :tabindex="3"
+                        autocomplete="organization"
+                        name="account_name"
+                        placeholder="Entreprise"
+                    />
+                    <InputError :message="errors.account_name" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="account_address">Adresse</Label>
+                    <Input
+                        id="account_address"
+                        type="text"
+                        :tabindex="4"
+                        autocomplete="street-address"
+                        name="account_address"
+                        placeholder="Adresse"
+                    />
+                    <InputError :message="errors.account_address" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="account_city">Ville</Label>
+                    <Input
+                        id="account_city"
+                        type="text"
+                        :tabindex="5"
+                        autocomplete="address-level2"
+                        name="account_city"
+                        placeholder="Ville"
+                    />
+                    <InputError :message="errors.account_city" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="account_phone">Téléphone</Label>
+                    <Input
+                        id="account_phone"
+                        type="tel"
+                        :tabindex="6"
+                        autocomplete="tel"
+                        name="account_phone"
+                        placeholder="Téléphone"
+                    />
+                    <InputError :message="errors.account_phone" />
+                </div>
+
+                <div class="grid gap-2">
                     <Label for="password">Mot de passe</Label>
                     <Input
                         id="password"
                         type="password"
                         required
-                        :tabindex="3"
+                        :tabindex="7"
                         autocomplete="new-password"
                         name="password"
                         placeholder="Mot de passe"
@@ -76,7 +129,7 @@ import { Form, Head } from '@inertiajs/vue3';
                         id="password_confirmation"
                         type="password"
                         required
-                        :tabindex="4"
+                        :tabindex="8"
                         autocomplete="new-password"
                         name="password_confirmation"
                         placeholder="Confirmer le mot de passe"
@@ -87,7 +140,7 @@ import { Form, Head } from '@inertiajs/vue3';
                 <Button
                     type="submit"
                     class="mt-2 w-full"
-                    tabindex="5"
+                    tabindex="9"
                     :disabled="processing"
                     data-test="register-user-button"
                 >
@@ -101,7 +154,7 @@ import { Form, Head } from '@inertiajs/vue3';
                 <TextLink
                     :href="login()"
                     class="underline underline-offset-4"
-                    :tabindex="6"
+                    :tabindex="10"
                     >Se connecter</TextLink
                 >
             </div>

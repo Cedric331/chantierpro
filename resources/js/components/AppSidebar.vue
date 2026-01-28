@@ -14,6 +14,7 @@ import {
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import {
+    Bell,
     CalendarDays,
     LayoutGrid,
     Users,
@@ -44,7 +45,13 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [];
+const footerNavItems: NavItem[] = [
+    {
+        title: 'Notifications',
+        href: '/notifications',
+        icon: Bell,
+    },
+];
 </script>
 
 <template>

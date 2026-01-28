@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Enums\MembershipRole;
 use App\Models\Account;
 use App\Models\Membership;
 use App\Models\User;
@@ -27,6 +28,10 @@ class CreateNewUser implements CreatesNewUsers
         $validated = Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
+            'account_name' => ['required', 'string', 'max:255'],
+            'account_address' => ['nullable', 'string', 'max:255'],
+            'account_city' => ['nullable', 'string', 'max:255'],
+            'account_phone' => ['nullable', 'string', 'max:50'],
         ])->validate();
 
         return DB::transaction(function () use ($validated): User {
@@ -36,9 +41,12 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => $validated['password'],
             ]);
 
-            $accountName = $validated['name'].' Account';
+            $accountName = $validated['account_name'];
             $account = Account::create([
                 'name' => $accountName,
+                'address' => $validated['account_address'] ?? null,
+                'city' => $validated['account_city'] ?? null,
+                'phone' => $validated['account_phone'] ?? null,
                 'slug' => Str::slug($accountName).'-'.Str::lower(Str::random(6)),
                 'trial_ends_at' => Carbon::now()->addDays(14),
             ]);
@@ -46,7 +54,7 @@ class CreateNewUser implements CreatesNewUsers
             Membership::create([
                 'account_id' => $account->id,
                 'user_id' => $user->id,
-                'role' => 'owner',
+                'role' => MembershipRole::Owner,
             ]);
 
             $user->forceFill([
