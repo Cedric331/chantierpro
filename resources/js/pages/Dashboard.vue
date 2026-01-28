@@ -69,12 +69,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const formatCurrency = (value: number) =>
+const formatCurrency = (value: number, decimals = 0) =>
     new Intl.NumberFormat('fr-FR', {
         style: 'currency',
         currency: 'EUR',
-        maximumFractionDigits: 0,
-    }).format(value ?? 0);
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    })
+    .format(value ?? 0)
+    .replace(/\u202F/g, '\u00A0');
+
 
 const progressChartOptions = {
     chart: {
@@ -146,9 +150,10 @@ const statusChartOptions = {
                 <!-- Prix affiché avec espaces pour la lisibilité -->
                 <StatCard
                     title="Budget total"
-                    :value="stats.totalBudget.toLocaleString('fr-FR', { maximumFractionDigits: 0 })"
+                    :value="formatCurrency(stats.totalBudget)"
                     description="Dépenses estimées"
                 />
+
             </div>
 
             <div class="grid gap-6 lg:grid-cols-3">

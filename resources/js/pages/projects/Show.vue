@@ -727,13 +727,24 @@ const submitDeleteTask = () => {
         onError: () => toast.error('Impossible de supprimer la tâche'),
     });
 };
+
+const formatCurrency = (value: number, decimals = 0) =>
+    new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    })
+    .format(value ?? 0)
+    .replace(/\u202F/g, '\u00A0');
+
 </script>
 
 <template>
     <Head :title="project.name" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="grid gap-6 p-6 lg:grid-cols-[420px_1fr]">
+        <div class="grid gap-6 p-6 lg:grid-cols-[600px_1fr]">
             <div class="space-y-4 lg:sticky lg:top-4 lg:self-start">
                 <div class="rounded-xl border bg-card p-4">
                     <div class="flex items-start justify-between gap-3">
@@ -746,7 +757,7 @@ const submitDeleteTask = () => {
                         <StatusBadge :label="formatStatus(project.status)" :tone="statusTone(project.status)" />
                     </div>
                     <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        <span>Budget: {{ Number(projectQuickForm.budget || 0).toLocaleString('fr-FR') }} €</span>
+                        <span>Budget: {{ formatCurrency(projectQuickForm.budget) }}</span>
                         <span>Avancement: {{ project.progress }}%</span>
                         <span v-if="project.end_date">Livraison: {{ formatDate(project.end_date) }}</span>
                     </div>
@@ -773,7 +784,7 @@ const submitDeleteTask = () => {
                             </select>
                         </div>
                         <div class="grid gap-2">
-                            <Label for="quick-budget">Budget ({{ Number(projectQuickForm.budget || 0).toLocaleString('fr-FR') }} €)</Label>
+                            <Label for="quick-budget">Budget ({{ formatCurrency(projectQuickForm.budget) }})</Label>
                             <Input id="quick-budget" v-model="projectQuickForm.budget" type="number" min="0" step="100" />
                         </div>
                         <div class="grid gap-2">

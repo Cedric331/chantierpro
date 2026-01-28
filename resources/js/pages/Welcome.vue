@@ -465,7 +465,7 @@ onBeforeUnmount(() => {
 
         <div
             v-if="cookieBannerVisible"
-            class="fixed bottom-6 left-1/2 z-50 w-[min(680px,92%)] -translate-x-1/2 rounded-2xl border border-white/10 bg-[#101624] p-5 text-sm text-white shadow-2xl"
+            class="fixed bottom-6 left-1/2 z-50 w-[min(1500px,92%)] -translate-x-1/2 rounded-2xl border border-white/10 bg-[#101624] p-5 text-sm text-white shadow-2xl"
         >
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>

@@ -148,6 +148,16 @@ const submitDelete = () => {
     });
 };
 
+const formatCurrency = (value: number, decimals = 0) =>
+    new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    })
+    .format(value ?? 0)
+    .replace(/\u202F/g, '\u00A0');
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Chantiers',
@@ -266,7 +276,7 @@ const gridItems = computed(() => props.projects.data);
                         {{ project.address }}, {{ project.city }}
                     </div>
                     <div class="mt-3 flex items-center justify-between text-sm">
-                        <span>{{ project.budget.toLocaleString('fr-FR') }} €</span>
+                        <span>{{ formatCurrency(project.budget) }}</span>
                         <span class="font-medium">{{ project.progress }}%</span>
                     </div>
                     <div class="mt-2 h-2 w-full rounded-full bg-muted">
@@ -308,7 +318,7 @@ const gridItems = computed(() => props.projects.data);
                         :tone="project.status === 'delayed' ? 'danger' : project.status === 'completed' ? 'success' : project.status === 'cancelled' ? 'danger' : project.status === 'in_progress' ? 'info' : 'warning'"
                     />
                     <div class="flex items-center justify-between gap-2">
-                        <span>{{ project.budget.toLocaleString('fr-FR') }} €</span>
+                        <span>{{ formatCurrency(project.budget) }}</span>
                         <div class="flex items-center gap-2">
                             <Button type="button" size="sm" variant="secondary" @click.prevent="openEdit(project)">Modifier</Button>
                             <Button type="button" size="sm" variant="destructive" @click.prevent="openDelete(project)">Supprimer</Button>
