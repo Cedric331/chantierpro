@@ -12,7 +12,10 @@ import { Button } from '@/components/ui/button';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
 import DxfParser from 'dxf-parser';
-import { Color } from 'three';
+import { Viewer } from 'three-dxf';
+import * as THREE from 'three';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import dxfFontUrl from 'three/examples/fonts/helvetiker_regular.typeface.json?url';
 import { IfcViewerAPI } from 'web-ifc-viewer';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -36,10 +39,42 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 const dxfContainerRef = ref<HTMLDivElement | null>(null);
 const ifcContainerRef = ref<HTMLDivElement | null>(null);
 let ifcViewer: IfcViewerAPI | null = null;
+let dxfResizeObserver: ResizeObserver | null = null;
+type DxfViewer = {
+    resize: (width: number, height: number) => void;
+};
+let dxfViewer: DxfViewer | null = null;
+let dxfFont: ReturnType<FontLoader['parse']> | null = null;
+let dxfFontPromise: Promise<ReturnType<FontLoader['parse']>> | null = null;
+let dxfLoadController: AbortController | null = null;
+let dxfLoadToken = 0;
+const loadDxfFont = async () => {
+    if (dxfFont) return dxfFont;
+    if (!dxfFontPromise) {
+        dxfFontPromise = fetch(dxfFontUrl)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('DXF font fetch failed');
+                }
+                return response.json();
+            })
+            .then((json) => {
+                const loader = new FontLoader();
+                dxfFont = loader.parse(json);
+                return dxfFont;
+            })
+            .catch((error) => {
+                dxfFontPromise = null;
+                throw error;
+            });
+    }
+    return dxfFontPromise;
+};
 const pdfDoc = ref<pdfjsLib.PDFDocumentProxy | null>(null);
 const pageNumber = ref(1);
 const pageCount = ref(1);
 const loading = ref(false);
+const dxfLoading = ref(false);
 const loadError = ref('');
 const useIframe = ref(false);
 
@@ -103,150 +138,77 @@ const resetPdf = () => {
 };
 
 const resetDxf = () => {
+    if (dxfLoadController) {
+        dxfLoadController.abort();
+        dxfLoadController = null;
+    }
+    if (dxfResizeObserver) {
+        dxfResizeObserver.disconnect();
+        dxfResizeObserver = null;
+    }
+    dxfViewer = null;
     if (dxfContainerRef.value) {
         dxfContainerRef.value.innerHTML = '';
     }
 };
 
-const renderDxfToSvg = (dxfText: string) => {
-    if (!dxfContainerRef.value) return;
-    const parser = new DxfParser();
-    const dxf = parser.parseSync(dxfText);
-
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    const updateBounds = (x: number, y: number) => {
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x);
-        maxY = Math.max(maxY, y);
-    };
-
-    const entities = dxf.entities ?? [];
-
-    entities.forEach((entity: any) => {
-        if (entity.type === 'LINE') {
-            updateBounds(entity.start.x, entity.start.y);
-            updateBounds(entity.end.x, entity.end.y);
-        }
-        if (entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') {
-            const vertices = entity.vertices ?? [];
-            vertices.forEach((vertex: any) => updateBounds(vertex.x, vertex.y));
-        }
-        if (entity.type === 'CIRCLE' || entity.type === 'ARC') {
-            updateBounds(entity.center.x - entity.radius, entity.center.y - entity.radius);
-            updateBounds(entity.center.x + entity.radius, entity.center.y + entity.radius);
-        }
-        if (entity.type === 'TEXT' && entity.startPoint) {
-            updateBounds(entity.startPoint.x, entity.startPoint.y);
-        }
-    });
-
-    if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
-        minX = 0;
-        minY = 0;
-        maxX = 1;
-        maxY = 1;
-    }
-
-    const width = Math.max(maxX - minX, 1);
-    const height = Math.max(maxY - minY, 1);
-
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    svg.style.width = '100%';
-    svg.style.height = '100%';
-
-    const geometryGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    geometryGroup.setAttribute('transform', `translate(${-minX} ${maxY}) scale(1 -1)`);
-    svg.appendChild(geometryGroup);
-
-    const textGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    svg.appendChild(textGroup);
-
-    const stroke = '#111827';
-
-    const createPath = (d: string) => {
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', d);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', stroke);
-        path.setAttribute('stroke-width', '0.02');
-        path.setAttribute('vector-effect', 'non-scaling-stroke');
-        return path;
-    };
-
-    entities.forEach((entity: any) => {
-        if (entity.type === 'LINE') {
-            const path = createPath(`M ${entity.start.x} ${entity.start.y} L ${entity.end.x} ${entity.end.y}`);
-            geometryGroup.appendChild(path);
-        }
-        if (entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') {
-            const vertices = entity.vertices ?? [];
-            if (!vertices.length) return;
-            const d = vertices
-                .map((vertex: any, index: number) => `${index === 0 ? 'M' : 'L'} ${vertex.x} ${vertex.y}`)
-                .join(' ');
-            const close = entity.shape || entity.closed ? ' Z' : '';
-            const path = createPath(`${d}${close}`);
-            geometryGroup.appendChild(path);
-        }
-        if (entity.type === 'CIRCLE') {
-            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('cx', entity.center.x);
-            circle.setAttribute('cy', entity.center.y);
-            circle.setAttribute('r', entity.radius);
-            circle.setAttribute('fill', 'none');
-            circle.setAttribute('stroke', stroke);
-            circle.setAttribute('stroke-width', '0.02');
-            circle.setAttribute('vector-effect', 'non-scaling-stroke');
-            geometryGroup.appendChild(circle);
-        }
-        if (entity.type === 'ARC') {
-            const startRad = (entity.startAngle * Math.PI) / 180;
-            const endRad = (entity.endAngle * Math.PI) / 180;
-            const sx = entity.center.x + entity.radius * Math.cos(startRad);
-            const sy = entity.center.y + entity.radius * Math.sin(startRad);
-            const ex = entity.center.x + entity.radius * Math.cos(endRad);
-            const ey = entity.center.y + entity.radius * Math.sin(endRad);
-            const delta = (entity.endAngle - entity.startAngle + 360) % 360;
-            const largeArc = delta > 180 ? 1 : 0;
-            const path = createPath(`M ${sx} ${sy} A ${entity.radius} ${entity.radius} 0 ${largeArc} 1 ${ex} ${ey}`);
-            geometryGroup.appendChild(path);
-        }
-        if (entity.type === 'TEXT' && entity.startPoint) {
-            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text.setAttribute('x', String(entity.startPoint.x - minX));
-            text.setAttribute('y', String(maxY - entity.startPoint.y));
-            text.setAttribute('fill', stroke);
-            text.setAttribute('font-size', String(entity.height || 0.3));
-            text.textContent = entity.text;
-            textGroup.appendChild(text);
-        }
-    });
-
-    dxfContainerRef.value.innerHTML = '';
-    dxfContainerRef.value.appendChild(svg);
-};
-
 const loadDxf = async () => {
-    if (!dxfContainerRef.value || !fileUrl.value) return;
+    if (!fileUrl.value) return;
     resetDxf();
     loadError.value = '';
+    dxfLoading.value = true;
+    const currentToken = ++dxfLoadToken;
     await nextTick();
     try {
-        const response = await fetch(fileUrl.value, { credentials: 'include' });
+        const container = dxfContainerRef.value;
+        if (!container) {
+            return;
+        }
+        dxfLoadController = new AbortController();
+        const response = await fetch(fileUrl.value, {
+            credentials: 'include',
+            signal: dxfLoadController.signal,
+        });
         if (!response.ok) {
             throw new Error('DXF fetch failed');
         }
         const dxfText = await response.text();
-        renderDxfToSvg(dxfText);
+        const parser = new DxfParser();
+        type DxfEntity = { inPaperSpace?: boolean };
+        type DxfData = { entities?: DxfEntity[] } & Record<string, unknown>;
+        const dxfData = parser.parseSync(dxfText) as DxfData;
+        const entities = dxfData.entities ?? [];
+        const modelEntities = entities.filter((entity) => !entity.inPaperSpace);
+        const dxfDataForViewer = modelEntities.length
+            ? { ...dxfData, entities: modelEntities }
+            : dxfData;
+        if (currentToken !== dxfLoadToken) {
+            return;
+        }
+        try {
+            dxfFont = await loadDxfFont();
+        } catch (error) {
+            dxfFont = null;
+            console.warn('DXF font load failed, rendering without text.', error);
+        }
+        if (currentToken !== dxfLoadToken) {
+            return;
+        }
+        const width = container.clientWidth || 1;
+        const height = container.clientHeight || 1;
+        dxfViewer = new Viewer(dxfDataForViewer, container, width, height, dxfFont) as DxfViewer;
+        dxfResizeObserver = new ResizeObserver(() => {
+            const nextWidth = container.clientWidth || 1;
+            const nextHeight = container.clientHeight || 1;
+            dxfViewer?.resize(nextWidth, nextHeight);
+        });
+        dxfResizeObserver.observe(container);
     } catch (error) {
+        resetDxf();
+        console.error('DXF preview failed.', error);
         loadError.value = 'Impossible de prévisualiser ce DXF.';
+    } finally {
+        dxfLoading.value = false;
     }
 };
 
@@ -295,7 +257,7 @@ watch(
             try {
                 ifcViewer = new IfcViewerAPI({
                     container: ifcContainerRef.value,
-                    backgroundColor: new Color(0xffffff),
+                    backgroundColor: new THREE.Color(0xffffff),
                 });
                 ifcViewer.grid.setGrid();
                 ifcViewer.axes.setAxes();
@@ -322,7 +284,7 @@ watch(
             try {
                 ifcViewer = new IfcViewerAPI({
                     container: ifcContainerRef.value,
-                    backgroundColor: new Color(0xffffff),
+                    backgroundColor: new THREE.Color(0xffffff),
                 });
                 ifcViewer.grid.setGrid();
                 ifcViewer.axes.setAxes();
@@ -377,6 +339,8 @@ onBeforeUnmount(() => {
                     />
                 </div>
                 <div v-else-if="isDxf" class="space-y-2 text-sm text-muted-foreground">
+                    <p v-if="dxfLoading" class="text-sm text-muted-foreground">Chargement…</p>
+                    <p v-if="loadError" class="text-sm text-red-500">{{ loadError }}</p>
                     <div
                         ref="dxfContainerRef"
                         class="h-[78vh] w-full overflow-hidden rounded-md bg-white"

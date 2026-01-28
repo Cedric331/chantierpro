@@ -2,11 +2,22 @@ import { wayfinder } from '@laravel/vite-plugin-wayfinder';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
+import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
     resolve: {
         dedupe: ['three'],
+        alias: [
+            {
+                find: /^three$/,
+                replacement: resolve(__dirname, 'resources/js/lib/three-shim.ts'),
+            },
+            {
+                find: /^THREE$/,
+                replacement: resolve(__dirname, 'resources/js/lib/three-shim.ts'),
+            },
+        ],
     },
     plugins: [
         laravel({

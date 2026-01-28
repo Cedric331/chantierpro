@@ -24,3 +24,31 @@ declare module 'vue' {
         $headManager: ReturnType<typeof createHeadManager>;
     }
 }
+
+declare module 'three-dxf' {
+    export function Viewer(
+        data: unknown,
+        parent: HTMLElement,
+        width?: number,
+        height?: number,
+        font?: unknown,
+    ): {
+        resize: (width: number, height: number) => void;
+    };
+}
+
+declare module 'dxf-parser' {
+    export default class DxfParser {
+        parseSync: (content: string) => unknown;
+    }
+}
+
+declare module 'three/examples/jsm/loaders/FontLoader.js' {
+    export class FontLoader {
+        parse: (json: unknown) => unknown;
+    }
+}
+
+declare module 'three/examples/jsm/geometries/TextGeometry.js' {
+    export class TextGeometry {}
+}
