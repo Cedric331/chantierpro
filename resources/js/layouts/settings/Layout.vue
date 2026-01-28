@@ -8,6 +8,7 @@ import { edit as editProfile } from '@/routes/profile';
 import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
+import { edit as editAppearance } from '@/routes/appearance';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -17,6 +18,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Mot de passe',
         href: editPassword(),
+    },
+    {
+        title: 'Apparence',
+        href: editAppearance(),
     },
 ];
 
