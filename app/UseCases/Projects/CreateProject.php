@@ -17,6 +17,8 @@ class CreateProject
             'city' => ['required', 'string', 'max:255'],
             'status' => ['required', 'string', 'max:50'],
             'budget' => ['nullable', 'numeric', 'min:0'],
+            'budget_alert_enabled' => ['nullable', 'boolean'],
+            'budget_alert_threshold' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
             'progress' => ['nullable', 'integer', 'min:0', 'max:100'],

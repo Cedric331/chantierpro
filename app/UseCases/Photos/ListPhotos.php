@@ -20,7 +20,7 @@ class ListPhotos
         );
         $query->when($filters['search'] ?? null, fn (Builder $builder, string $search) => $builder->where('caption', 'like', "%{$search}%"));
 
-        return $query->latest()->paginate(12)->withQueryString();
+        return $query->latest()->paginate(20)->withQueryString();
     }
 }
 

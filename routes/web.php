@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Billing\IndexController as BillingIndexController;
+use App\Http\Controllers\Budgets\DestroyController as BudgetsDestroyController;
+use App\Http\Controllers\Budgets\IndexController as BudgetsIndexController;
+use App\Http\Controllers\Budgets\StoreController as BudgetsStoreController;
+use App\Http\Controllers\Budgets\UpdateController as BudgetsUpdateController;
 use App\Http\Controllers\Dashboard\ShowController as DashboardShowController;
 use App\Http\Controllers\Decisions\DestroyController as DecisionsDestroyController;
 use App\Http\Controllers\Decisions\IndexController as DecisionsIndexController;
@@ -22,10 +26,14 @@ use App\Http\Controllers\Photos\UpdateController as PhotosUpdateController;
 use App\Http\Controllers\Notifications\IndexController as NotificationsIndexController;
 use App\Http\Controllers\Notifications\MarkAllReadController as NotificationsMarkAllReadController;
 use App\Http\Controllers\Notifications\MarkReadController as NotificationsMarkReadController;
+use App\Http\Controllers\Portfolio\IndexController as PortfolioIndexController;
 use App\Http\Controllers\ProjectTasks\DestroyController as ProjectTasksDestroyController;
 use App\Http\Controllers\ProjectTasks\IndexController as ProjectTasksIndexController;
 use App\Http\Controllers\ProjectTasks\StoreController as ProjectTasksStoreController;
 use App\Http\Controllers\ProjectTasks\UpdateController as ProjectTasksUpdateController;
+use App\Http\Controllers\Reports\ExportController as ReportsExportController;
+use App\Http\Controllers\Reports\IndexController as ReportsIndexController;
+use App\Http\Controllers\Reports\PrintController as ReportsPrintController;
 use App\Http\Controllers\ProjectContractors\DestroyController as ProjectContractorsDestroyController;
 use App\Http\Controllers\ProjectContractors\StoreController as ProjectContractorsStoreController;
 use App\Http\Controllers\Projects\DestroyController as ProjectsDestroyController;
@@ -41,6 +49,16 @@ use App\Http\Controllers\Validations\DestroyController as ValidationsDestroyCont
 use App\Http\Controllers\Validations\IndexController as ValidationsIndexController;
 use App\Http\Controllers\Validations\StoreController as ValidationsStoreController;
 use App\Http\Controllers\Validations\UpdateController as ValidationsUpdateController;
+use App\Http\Controllers\Milestones\DestroyController as MilestonesDestroyController;
+use App\Http\Controllers\Milestones\StoreController as MilestonesStoreController;
+use App\Http\Controllers\Milestones\UpdateController as MilestonesUpdateController;
+use App\Http\Controllers\ProjectPhases\DestroyController as ProjectPhasesDestroyController;
+use App\Http\Controllers\ProjectPhases\StoreController as ProjectPhasesStoreController;
+use App\Http\Controllers\ProjectPhases\UpdateController as ProjectPhasesUpdateController;
+use App\Http\Controllers\ProjectTaskDependencies\DestroyController as ProjectTaskDependenciesDestroyController;
+use App\Http\Controllers\ProjectTaskDependencies\StoreController as ProjectTaskDependenciesStoreController;
+use App\Http\Controllers\ProjectMessages\StoreController as ProjectMessagesStoreController;
+use App\Http\Controllers\Comments\StoreController as CommentsStoreController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -57,6 +75,30 @@ Route::middleware(['auth', 'verified', 'account'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'account', 'subscription'])->group(function () {
     Route::get('dashboard', DashboardShowController::class)->name('dashboard');
+
+    Route::get('portfolio', PortfolioIndexController::class)->name('portfolio.index');
+    Route::get('reports', ReportsIndexController::class)->name('reports.index');
+    Route::get('reports/print', ReportsPrintController::class)->name('reports.print');
+    Route::get('reports/export', ReportsExportController::class)->name('reports.export');
+
+    Route::get('budgets', BudgetsIndexController::class)->name('budgets.index');
+    Route::post('budgets', BudgetsStoreController::class)->name('budgets.store');
+    Route::put('budgets/{budgetItem}', BudgetsUpdateController::class)->name('budgets.update');
+    Route::delete('budgets/{budgetItem}', BudgetsDestroyController::class)->name('budgets.destroy');
+
+    Route::post('milestones', MilestonesStoreController::class)->name('milestones.store');
+    Route::put('milestones/{milestone}', MilestonesUpdateController::class)->name('milestones.update');
+    Route::delete('milestones/{milestone}', MilestonesDestroyController::class)->name('milestones.destroy');
+
+    Route::post('phases', ProjectPhasesStoreController::class)->name('phases.store');
+    Route::put('phases/{phase}', ProjectPhasesUpdateController::class)->name('phases.update');
+    Route::delete('phases/{phase}', ProjectPhasesDestroyController::class)->name('phases.destroy');
+
+    Route::post('task-dependencies', ProjectTaskDependenciesStoreController::class)->name('task-dependencies.store');
+    Route::delete('task-dependencies/{dependency}', ProjectTaskDependenciesDestroyController::class)->name('task-dependencies.destroy');
+
+    Route::post('project-messages', ProjectMessagesStoreController::class)->name('project-messages.store');
+    Route::post('comments', CommentsStoreController::class)->name('comments.store');
 
     Route::get('projects', ProjectsIndexController::class)->name('projects.index');
     Route::get('projects/{project}', ProjectsShowController::class)->name('projects.show');

@@ -26,7 +26,7 @@ class ListContractors
             });
         });
 
-        return $query->latest()->paginate(12)->withQueryString();
+        return $query->latest()->paginate(20)->withQueryString();
     }
 }
 

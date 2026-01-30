@@ -2,6 +2,7 @@
 import EmptyState from '@/components/EmptyState.vue';
 import SectionHeader from '@/components/SectionHeader.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PaginationLinks from '@/components/PaginationLinks.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
@@ -18,6 +19,7 @@ type NotificationItem = {
 
 type Pagination<T> = {
     data: T[];
+    links: Array<{ url: string | null; label: string; active: boolean }>;
 };
 
 const props = defineProps<{
@@ -157,8 +159,10 @@ const markAllRead = () => {
                 </div>
             </div>
 
+            <PaginationLinks :links="notifications.links" />
+
             <EmptyState
-                v-else
+                v-if="localNotifications.length === 0"
                 title="Aucune notification"
                 description="Les dernières activités apparaîtront ici."
             />

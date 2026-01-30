@@ -4,6 +4,7 @@ import SectionHeader from '@/components/SectionHeader.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import StatusIcon from '@/components/StatusIcon.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PaginationLinks from '@/components/PaginationLinks.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
@@ -31,7 +32,10 @@ type Task = {
 
 type Project = { id: number; name: string };
 type Contractor = { id: number; name: string; role?: string | null };
-type Pagination<T> = { data: T[] };
+type Pagination<T> = {
+    data: T[];
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+};
 
 const props = defineProps<{
     filters: Record<string, string | null>;
@@ -196,8 +200,10 @@ const submitDelete = () => {
                 </div>
             </div>
 
+            <PaginationLinks :links="tasks.links" />
+
             <EmptyState
-                v-else
+                v-if="tasks.data.length === 0"
                 title="Aucune tâche"
                 description="Créez des tâches pour organiser le terrain."
             />

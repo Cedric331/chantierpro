@@ -16,7 +16,7 @@ class ListDecisions
         $query->when($filters['project'] ?? null, fn (Builder $builder, string $project) => $builder->where('project_id', $project));
         $query->when($filters['search'] ?? null, fn (Builder $builder, string $search) => $builder->where('title', 'like', "%{$search}%"));
 
-        return $query->latest('decided_at')->paginate(12)->withQueryString();
+        return $query->latest('decided_at')->paginate(20)->withQueryString();
     }
 }
 

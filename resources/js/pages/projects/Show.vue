@@ -69,6 +69,7 @@ type ProjectTask = {
     assigned_to?: string | null;
     due_date?: string | null;
     created_at?: string | null;
+    comments?: Comment[];
 };
 
 type Decision = {
@@ -79,6 +80,28 @@ type Decision = {
     description?: string | null;
 };
 
+type Comment = {
+    id: number;
+    body: string;
+    created_at?: string | null;
+    author?: { id: number; name: string };
+};
+
+type ProjectMessage = {
+    id: number;
+    body: string;
+    created_at?: string | null;
+    author?: { id: number; name: string };
+};
+
+type ProjectActivity = {
+    id: number;
+    type: string;
+    created_at?: string | null;
+    actor?: { id: number; name: string };
+    payload?: Record<string, unknown> | null;
+};
+
 type Project = {
     id: number;
     name: string;
@@ -87,6 +110,8 @@ type Project = {
     city: string;
     status: string;
     budget: number;
+    budget_alert_enabled: boolean;
+    budget_alert_threshold: number;
     progress: number;
     start_date?: string | null;
     end_date?: string | null;
@@ -96,6 +121,8 @@ type Project = {
     incidents: Incident[];
     tasks: ProjectTask[];
     decisions: Decision[];
+    messages: ProjectMessage[];
+    activities: ProjectActivity[];
 };
 
 const props = defineProps<{
@@ -109,6 +136,7 @@ const tabs = [
     { id: 'validations', label: 'Validations' },
     { id: 'incidents', label: 'Incidents' },
     { id: 'tasks', label: 'Tâches' },
+    { id: 'communication', label: 'Communication' },
 ];
 
 const activeTab = ref('contractors');
@@ -134,6 +162,8 @@ const projectQuickForm = useForm({
     city: props.project.city,
     status: props.project.status,
     budget: props.project.budget,
+    budget_alert_enabled: props.project.budget_alert_enabled,
+    budget_alert_threshold: props.project.budget_alert_threshold,
     progress_value: props.project.progress,
     start_date: toDateInput(props.project.start_date),
     end_date: toDateInput(props.project.end_date),
@@ -143,6 +173,17 @@ const cancelProjectOpen = ref(false);
 const cancelForm = useForm({
     reason: '',
 });
+const messageForm = useForm({
+    project_id: props.project.id,
+    body: '',
+});
+const commentForm = useForm({
+    commentable_type: 'task',
+    commentable_id: '',
+    body: '',
+});
+const commentOpen = ref(false);
+const selectedCommentTarget = ref<{ type: 'task' | 'milestone' | 'decision' | 'budget_item'; id: number } | null>(null);
 const projectForm = useForm({
     name: props.project.name,
     client_name: props.project.client_name,
@@ -150,6 +191,8 @@ const projectForm = useForm({
     city: props.project.city,
     status: props.project.status,
     budget: props.project.budget,
+    budget_alert_enabled: props.project.budget_alert_enabled,
+    budget_alert_threshold: props.project.budget_alert_threshold,
     progress_value: props.project.progress,
     start_date: toDateInput(props.project.start_date),
     end_date: toDateInput(props.project.end_date),
@@ -171,10 +214,11 @@ const kpiData = computed(() => {
 });
 
 const submitProjectQuickUpdate = () => {
+    projectQuickForm.transform((data) => {
+        const { progress_value, ...rest } = data;
+        return { ...rest, progress: progress_value };
+    });
     projectQuickForm.put(`/projects/${projectId}`, {
-        data: {
-            progress: projectQuickForm.progress_value,
-        },
         onSuccess: () => {
             toast.success('Chantier mis à jour');
         },
@@ -197,6 +241,8 @@ const openEditProject = () => {
     projectForm.city = props.project.city;
     projectForm.status = props.project.status;
     projectForm.budget = props.project.budget;
+    projectForm.budget_alert_enabled = props.project.budget_alert_enabled;
+    projectForm.budget_alert_threshold = props.project.budget_alert_threshold;
     projectForm.progress_value = props.project.progress;
     projectForm.start_date = toDateInput(props.project.start_date);
     projectForm.end_date = toDateInput(props.project.end_date);
@@ -204,24 +250,67 @@ const openEditProject = () => {
 };
 
 const submitEditProject = () => {
+    projectForm.transform((data) => {
+        const { progress_value, ...rest } = data;
+        return { ...rest, progress: progress_value };
+    });
     projectForm.put(`/projects/${projectId}`, {
-        data: {
-            name: projectForm.name,
-            client_name: projectForm.client_name,
-            address: projectForm.address,
-            city: projectForm.city,
-            status: projectForm.status,
-            budget: projectForm.budget,
-            start_date: projectForm.start_date,
-            end_date: projectForm.end_date,
-            progress: projectForm.progress_value,
-        },
         onSuccess: () => {
             editProjectOpen.value = false;
             toast.success('Chantier mis à jour');
         },
         onError: () => toast.error('Impossible de mettre à jour le chantier'),
     });
+};
+
+const submitMessage = () => {
+    messageForm.post('/project-messages', {
+        onSuccess: () => {
+            messageForm.body = '';
+            toast.success('Message envoyé');
+        },
+        onError: () => toast.error('Impossible d’envoyer le message'),
+    });
+};
+
+const openComments = (type: 'task' | 'milestone' | 'decision' | 'budget_item', id: number) => {
+    selectedCommentTarget.value = { type, id };
+    commentForm.commentable_type = type;
+    commentForm.commentable_id = String(id);
+    commentForm.body = '';
+    commentOpen.value = true;
+};
+
+const submitComment = () => {
+    commentForm.post('/comments', {
+        onSuccess: () => {
+            commentForm.body = '';
+            toast.success('Commentaire ajouté');
+        },
+        onError: () => toast.error('Impossible d’ajouter le commentaire'),
+    });
+};
+
+const currentComments = computed(() => {
+    if (!selectedCommentTarget.value) return [];
+    const { type, id } = selectedCommentTarget.value;
+    if (type === 'task') {
+        return props.project.tasks.find((task) => task.id === id)?.comments ?? [];
+    }
+    return [];
+});
+
+const activityLabel = (activity: ProjectActivity) => {
+    switch (activity.type) {
+        case 'message_posted':
+            return 'Message publié';
+        case 'comment_added':
+            return 'Commentaire ajouté';
+        case 'budget_overrun':
+            return 'Dépassement budgétaire';
+        default:
+            return 'Mise à jour';
+    }
 };
 
 const openCancelProject = () => {
@@ -1108,6 +1197,9 @@ const formatCurrency = (value: number, decimals = 0) =>
                                         :label="formatStatus(task.status)"
                                         :tone="statusTone(task.status)"
                                     />
+                                    <Button type="button" size="sm" variant="outline" @click="openComments('task', task.id)">
+                                        Commentaires
+                                    </Button>
                                     <Button type="button" size="sm" variant="outline" @click="openEditTask(task)">Modifier</Button>
                                     <Button type="button" size="sm" variant="destructive" @click="openDeleteTask(task)">
                                         Supprimer
@@ -1116,6 +1208,75 @@ const formatCurrency = (value: number, decimals = 0) =>
                             </div>
                         </div>
                         <EmptyState v-else title="Aucune tâche" description="Ajoutez des tâches terrain." />
+                    </div>
+                </div>
+
+                <div v-if="activeTab === 'communication'" class="space-y-6">
+                    <div class="rounded-xl border bg-card p-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <SectionHeader title="Messages chantier" />
+                            <span class="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                                {{ project.messages.length }} message(s)
+                            </span>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <div
+                                v-for="message in project.messages"
+                                :key="message.id"
+                                class="rounded-lg border p-3 text-sm"
+                            >
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="font-semibold">{{ message.author?.name || 'Utilisateur' }}</p>
+                                    <span class="text-xs text-muted-foreground">{{ formatDate(message.created_at) }}</span>
+                                </div>
+                                <p class="mt-2 text-sm text-muted-foreground">{{ message.body }}</p>
+                            </div>
+                            <EmptyState
+                                v-if="!project.messages.length"
+                                title="Aucun message"
+                                description="Commencez la discussion de chantier."
+                            />
+                        </div>
+                        <form class="mt-4 grid gap-3" @submit.prevent="submitMessage">
+                            <div class="grid gap-2">
+                                <Label for="message-body">Nouveau message</Label>
+                                <Input id="message-body" v-model="messageForm.body" placeholder="Votre message..." />
+                            </div>
+                            <div class="flex justify-end">
+                                <Button type="submit" :disabled="messageForm.processing || !messageForm.body.trim()">
+                                    Envoyer
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="rounded-xl border bg-card p-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <SectionHeader title="Historique" />
+                            <span class="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                                {{ project.activities.length }} évènement(s)
+                            </span>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <div
+                                v-for="activity in project.activities"
+                                :key="activity.id"
+                                class="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 text-sm"
+                            >
+                                <div>
+                                    <p class="font-semibold">{{ activityLabel(activity) }}</p>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ activity.actor?.name || 'Système' }}
+                                    </p>
+                                </div>
+                                <span class="text-xs text-muted-foreground">{{ formatDate(activity.created_at) }}</span>
+                            </div>
+                            <EmptyState
+                                v-if="!project.activities.length"
+                                title="Aucun évènement"
+                                description="Les actions du chantier apparaîtront ici."
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1191,6 +1352,26 @@ const formatCurrency = (value: number, decimals = 0) =>
                         <div class="grid gap-2">
                             <Label for="edit-progress">Avancement (%)</Label>
                             <Input id="edit-progress" v-model="projectForm.progress_value" type="number" min="0" max="100" />
+                        </div>
+                    </div>
+                    <div class="grid gap-2 md:grid-cols-2">
+                        <label class="flex items-center gap-2 text-sm">
+                            <input
+                                id="edit-budget-alert"
+                                v-model="projectForm.budget_alert_enabled"
+                                type="checkbox"
+                                class="h-4 w-4 rounded border"
+                            />
+                            <span>Alertes de dépassement</span>
+                        </label>
+                        <div class="grid gap-2">
+                            <Label for="edit-budget-threshold">Seuil (%)</Label>
+                            <Input
+                                id="edit-budget-threshold"
+                                v-model="projectForm.budget_alert_threshold"
+                                type="number"
+                                min="0"
+                            />
                         </div>
                     </div>
                     <div class="grid gap-2 md:grid-cols-2">
@@ -1646,6 +1827,39 @@ const formatCurrency = (value: number, decimals = 0) =>
                         Supprimer
                     </Button>
                 </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <Dialog v-model:open="commentOpen">
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Commentaires</DialogTitle>
+                    <DialogDescription>Suivi des échanges liés à la tâche.</DialogDescription>
+                </DialogHeader>
+                <div class="space-y-3 text-sm">
+                    <div v-for="comment in currentComments" :key="comment.id" class="rounded-lg border p-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <p class="font-semibold">{{ comment.author?.name || 'Utilisateur' }}</p>
+                            <span class="text-xs text-muted-foreground">{{ formatDate(comment.created_at) }}</span>
+                        </div>
+                        <p class="mt-2 text-sm text-muted-foreground">{{ comment.body }}</p>
+                    </div>
+                    <EmptyState
+                        v-if="!currentComments.length"
+                        title="Aucun commentaire"
+                        description="Ajoutez un commentaire pour tracer les échanges."
+                    />
+                </div>
+                <form class="mt-4 grid gap-3" @submit.prevent="submitComment">
+                    <div class="grid gap-2">
+                        <Label for="comment-body">Nouveau commentaire</Label>
+                        <Input id="comment-body" v-model="commentForm.body" placeholder="Votre commentaire..." />
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="secondary" @click="commentOpen = false">Annuler</Button>
+                        <Button type="submit" :disabled="commentForm.processing || !commentForm.body.trim()">Publier</Button>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     </AppLayout>

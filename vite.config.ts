@@ -28,6 +28,7 @@ export default defineConfig({
         tailwindcss(),
         wayfinder({
             formVariants: true,
+            command: 'node scripts/wayfinder.mjs',
         }),
         vue({
             template: {

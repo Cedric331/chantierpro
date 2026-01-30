@@ -16,7 +16,10 @@ import { Link } from '@inertiajs/vue3';
 import {
     Bell,
     CalendarDays,
+    FileText,
+    Layers,
     LayoutGrid,
+    Wallet,
     Users,
     Wrench,
 } from 'lucide-vue-next';
@@ -27,6 +30,21 @@ const mainNavItems: NavItem[] = [
         title: 'Tableau de bord',
         href: '/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'Portefeuille',
+        href: '/portfolio',
+        icon: Layers,
+    },
+    {
+        title: 'Reporting',
+        href: '/reports',
+        icon: FileText,
+    },
+    {
+        title: 'Budget',
+        href: '/budgets',
+        icon: Wallet,
     },
     {
         title: 'Chantiers',

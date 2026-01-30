@@ -3,6 +3,7 @@ import EmptyState from '@/components/EmptyState.vue';
 import SectionHeader from '@/components/SectionHeader.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import StatusIcon from '@/components/StatusIcon.vue';
+import PaginationLinks from '@/components/PaginationLinks.vue';
 import { provideDataContext } from '@/composables/DataContext';
 import { useChantierData } from '@/composables/useChantierData';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -37,6 +38,7 @@ type Project = {
 
 type Pagination<T> = {
     data: T[];
+    links: Array<{ url: string | null; label: string; active: boolean }>;
 };
 
 const props = defineProps<{
@@ -327,8 +329,10 @@ const gridItems = computed(() => props.projects.data);
                 </a>
             </div>
 
+            <PaginationLinks :links="projects.links" />
+
             <EmptyState
-                v-else
+                v-if="gridItems.length === 0"
                 title="Aucun chantier trouvé"
                 description="Ajustez les filtres ou créez un nouveau chantier."
             />

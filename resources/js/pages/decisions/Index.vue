@@ -3,6 +3,7 @@ import EmptyState from '@/components/EmptyState.vue';
 import SectionHeader from '@/components/SectionHeader.vue';
 import StatusIcon from '@/components/StatusIcon.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PaginationLinks from '@/components/PaginationLinks.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
@@ -29,7 +30,10 @@ type Decision = {
 };
 
 type Project = { id: number; name: string };
-type Pagination<T> = { data: T[] };
+type Pagination<T> = {
+    data: T[];
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+};
 
 const props = defineProps<{
     filters: Record<string, string | null>;
@@ -179,8 +183,10 @@ const submitDelete = () => {
                 </div>
             </div>
 
+            <PaginationLinks :links="decisions.links" />
+
             <EmptyState
-                v-else
+                v-if="decisions.data.length === 0"
                 title="Aucune décision"
                 description="Les décisions validées apparaîtront ici."
             />

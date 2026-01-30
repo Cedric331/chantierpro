@@ -73,6 +73,21 @@ class Account extends Model
         return $this->hasMany(ProjectTask::class);
     }
 
+    public function budgetItems(): HasMany
+    {
+        return $this->hasMany(ProjectBudgetItem::class);
+    }
+
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(ProjectMilestone::class);
+    }
+
+    public function featureUsages(): HasMany
+    {
+        return $this->hasMany(FeatureUsage::class);
+    }
+
     public function decisions(): HasMany
     {
         return $this->hasMany(Decision::class);

@@ -23,8 +23,15 @@ class ShowController extends Controller
             'validations',
             'incidents',
             'tasks',
+            'milestones',
             'decisions',
             'photos',
+            'messages.author',
+            'activities.actor',
+            'tasks.comments.author',
+            'milestones.comments.author',
+            'decisions.comments.author',
+            'budgetItems.comments.author',
         ]);
 
         return Inertia::render('projects/Show', [

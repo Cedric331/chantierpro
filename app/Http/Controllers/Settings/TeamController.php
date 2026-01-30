@@ -26,18 +26,20 @@ class TeamController extends Controller
         $members = $account->users()
             ->withPivot('role')
             ->orderBy('name')
-            ->get(['users.id', 'users.name', 'users.email']);
-
-        return Inertia::render('settings/Team', [
-            'account' => $account->only(['id', 'name']),
-            'members' => $members->map(fn (User $user) => [
+            ->paginate(20, ['users.id', 'users.name', 'users.email'])
+            ->withQueryString()
+            ->through(fn (User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->pivot?->role instanceof MembershipRole
                     ? $user->pivot->role->value
                     : $user->pivot?->role,
-            ]),
+            ]);
+
+        return Inertia::render('settings/Team', [
+            'account' => $account->only(['id', 'name']),
+            'members' => $members,
             'currentRole' => $request->user()->membershipRoleFor($account)?->value,
             'roleOptions' => MembershipRole::options(),
             'currentUserId' => $request->user()->id,

@@ -17,7 +17,7 @@ class ListProjectTasks
         $query->when($filters['status'] ?? null, fn (Builder $builder, string $status) => $builder->where('status', $status));
         $query->when($filters['search'] ?? null, fn (Builder $builder, string $search) => $builder->where('title', 'like', "%{$search}%"));
 
-        return $query->latest()->paginate(12)->withQueryString();
+        return $query->latest()->paginate(20)->withQueryString();
     }
 }
 

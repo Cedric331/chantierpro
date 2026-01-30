@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
+import PaginationLinks from '@/components/PaginationLinks.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,9 +19,14 @@ type Member = {
     role: string | null;
 };
 
+type Pagination<T> = {
+    data: T[];
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+};
+
 type Props = {
     account: { id: number; name: string };
-    members: Member[];
+    members: Pagination<Member>;
     currentRole: string | null;
     roleOptions: { value: string; label: string }[];
     currentUserId: number;
@@ -32,7 +38,7 @@ const localMembers = ref<Member[]>([]);
 const isOwner = computed(() => props.currentRole === 'owner');
 
 watch(
-    () => props.members,
+    () => props.members.data,
     (value) => {
         localMembers.value = [...value];
     },
@@ -141,6 +147,7 @@ const roleLabel = (role?: string | null) => {
                             </div>
                         </div>
                         <InputError class="mt-2" :message="roleForm.errors.role" />
+                        <PaginationLinks :links="members.links" />
                     </div>
 
                     <div class="lg:sticky lg:top-24 lg:self-start">

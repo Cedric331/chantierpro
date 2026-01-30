@@ -3,6 +3,7 @@ import EmptyState from '@/components/EmptyState.vue';
 import SectionHeader from '@/components/SectionHeader.vue';
 import { Camera } from 'lucide-vue-next';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PaginationLinks from '@/components/PaginationLinks.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
@@ -31,7 +32,10 @@ type Photo = {
 
 type Project = { id: number; name: string };
 type Task = { id: number; title: string; project_id: number };
-type Pagination<T> = { data: T[] };
+type Pagination<T> = {
+    data: T[];
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+};
 
 const props = defineProps<{
     filters: Record<string, string | null>;
@@ -229,8 +233,10 @@ const submitDelete = () => {
                 </div>
             </div>
 
+            <PaginationLinks :links="photos.links" />
+
             <EmptyState
-                v-else
+                v-if="photos.data.length === 0"
                 title="Aucune photo"
                 description="Ajoutez des photos pour conserver les preuves."
             />

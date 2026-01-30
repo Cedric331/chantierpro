@@ -18,7 +18,7 @@ class ListValidations
         $query->when($filters['type'] ?? null, fn (Builder $builder, string $type) => $builder->where('type', $type));
         $query->when($filters['search'] ?? null, fn (Builder $builder, string $search) => $builder->where('title', 'like', "%{$search}%"));
 
-        return $query->latest()->paginate(12)->withQueryString();
+        return $query->latest()->paginate(20)->withQueryString();
     }
 }
 

@@ -19,6 +19,8 @@ class UpdateProject
             'address' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
             'budget' => ['nullable', 'numeric', 'min:0'],
+            'budget_alert_enabled' => ['nullable', 'boolean'],
+            'budget_alert_threshold' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
             'progress' => ['nullable', 'integer', 'min:0', 'max:100'],
@@ -29,6 +31,12 @@ class UpdateProject
         }
         if (! array_key_exists('budget', $data) || $data['budget'] === null || $data['budget'] === '') {
             $data['budget'] = $project->budget;
+        }
+        if (! array_key_exists('budget_alert_enabled', $data) || $data['budget_alert_enabled'] === null) {
+            $data['budget_alert_enabled'] = $project->budget_alert_enabled;
+        }
+        if (! array_key_exists('budget_alert_threshold', $data) || $data['budget_alert_threshold'] === null) {
+            $data['budget_alert_threshold'] = $project->budget_alert_threshold;
         }
 
         $project->update($data);
